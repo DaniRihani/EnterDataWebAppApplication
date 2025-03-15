@@ -8,7 +8,6 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ github.repository | lower }}  # 👈 Added | lower filter
   MYSQL_ROOT_PASSWORD: rootpassword
   MYSQL_DATABASE: mydatabase
   MYSQL_USER: appuser
@@ -17,6 +16,10 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      # 👇 Define IMAGE_NAME here (job-level env) with lowercase conversion
+      IMAGE_NAME: ${{ lower(github.repository) }}
+    
     services:
       mysql:
         image: mysql:8.0
@@ -56,4 +59,29 @@ jobs:
       with:
         context: .
         push: true
-        tags: ${{ env.REGISTRY }}/${{ env.
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest  # 👈 Now uses lowercase name
+
+    - name: Start containers
+      run: |
+        docker network create app-network
+        docker run -d --name mysql-db \
+          -e MYSQL_ROOT_PASSWORD=${{ env.MYSQL_ROOT_PASSWORD }} \
+          -e MYSQL_DATABASE=${{ env.MYSQL_DATABASE }} \
+          -e MYSQL_USER=${{ env.MYSQL_USER }} \
+          -e MYSQL_PASSWORD=${{ env.MYSQL_PASSWORD }} \
+          --network app-network \
+          -p 3306:3306 \
+          mysql:8.0
+
+        docker run -d --name webapp-service \
+          -p 8080:8080 \
+          -e SPRING_DATASOURCE_URL="jdbc:mysql://mysql-db:3306/${{ env.MYSQL_DATABASE }}?useSSL=false" \
+          -e SPRING_DATASOURCE_USERNAME=${{ env.MYSQL_USER }} \
+          -e SPRING_DATASOURCE_PASSWORD=${{ env.MYSQL_PASSWORD }} \
+          --network app-network \
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+
+    - name: Verify deployment
+      run: |
+        sleep 10  # Wait for app to start
+        curl --fail http://localhost:8080/health
