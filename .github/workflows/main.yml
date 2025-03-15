@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # 👇 Use toLowerCase() instead of lower()
-      IMAGE_NAME: ${{ github.repository.toLowerCase() }}
+      IMAGE_NAME: ${{ lower(github.repository) }}
     
     services:
       mysql:
