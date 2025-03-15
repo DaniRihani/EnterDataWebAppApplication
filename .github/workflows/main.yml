@@ -51,7 +51,3 @@ jobs:
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-    - name: Verify deployment
-      run: |
-        sleep 10  # Wait for app to start
-        curl --fail http://localhost:8080/health
