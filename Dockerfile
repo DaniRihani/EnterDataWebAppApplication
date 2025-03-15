@@ -1,7 +1,14 @@
 # First stage - Build the Java app
 FROM eclipse-temurin:17-jdk-jammy AS build
 WORKDIR /app
+
+# Install Maven
+RUN apt update && apt install -y maven
+
+# Copy source code
 COPY . .
+
+# Build the application
 RUN mvn clean package -DskipTests
 
 # Second stage - Create a minimal runtime image
