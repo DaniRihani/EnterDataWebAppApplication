@@ -8,7 +8,7 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: "danirihani/enterdatawebappapplication"
+  IMAGE_NAME: danirihani1/enterdatawebappapplication
   MYSQL_ROOT_PASSWORD: rootpassword
   MYSQL_DATABASE: mydatabase
   MYSQL_USER: appuser
